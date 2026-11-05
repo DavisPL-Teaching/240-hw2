@@ -8,6 +8,10 @@
 \usepackage{amsthm}
 \usepackage{enumerate}
 
+%% environment for definition - problem 1
+\theoremstyle{plain}
+\newtheorem{definition}{Defiition}
+
 \usepackage[margin=1.5in]{geometry}
 
 \usepackage{xcolor}
@@ -58,18 +62,156 @@ Solutions to the theory problems should be written in LaTeX.
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+In class (Lecture 2, Part 1)
+we discussed that for compilers, there are three different languages involved -- each with their own semantics, and a valid compiler must be consistent with all three of them. Namely:
+\begin{itemize}
+\item The source language $S$ (language in which we write the program)
+\item The meta language $M$ (language in which we write the compiler)
+\item The target language $T$ (language to which we compile the program).
+\end{itemize}
+
+This problem asks you to complete the definition of a \emph{correct} compiler (one which implements the semantics), based on these three semantics.
+
+\begin{enumerate}[(a)]
+\item
+Complete the definition below based on the template that we started in class. \textbf{Hint:} you may find it helpful to reference the definition of when an interpreter satisfies a semantics that we saw in class (Lecture 1). Your definition should follow a similar idea.
+
+\begin{definition}
+Let $M$ be the semantics (set of $(\texttt{INPUT}, \texttt{prog}, \texttt{OUTPUT})$) for the metalanguage. Let $S$ be the semantics of the source language. Let $T$ be the semantics of the target language.
+
+A compiler $C$ is a program in the metalanguage $M$.
+
+A compiler $C$ \textbf{is correct}, or \textbf{satisfies} the semantics, if \ldots
+\textcolor{red}{TODO: Complete the definition here.}
+\end{definition}
+
+\item
+Use your definition to prove the following:
+If $C_1$ is a correct compiler from $S$ to $T$, and $C_2$ is a correct compiler from $T$ to $U$, then the compiler $C$ defined by the following pseudocode is a correct compiler from $S$ to $U$:
+\begin{verbatim}
+    Compiler C from S to U:
+    On input prog:
+    - Run C1: set out1 = C1(prog).
+    - Run C2 on the result: set out2 = C2(output1).
+    - Return out2.
+\end{verbatim}
+
+You may assume that the meta-language $M$ runs the pseudocode above in the way that you would expect (i.e., it runs $C_1$, followed by $C_2$, and returns the result, similar to how \texttt{Seq} works for \texttt{RandProg}.)
+
+\textbf{Note:} This part is essentially showing that compiling a program through an intermediate representation works out. In this case,
+the intermediate representation is $T$ and the overall compiler is from $S$ to $U$.
+
+\item
+Use your definition to prove the following:
+If $C$ is a correct compiler from $S$ to $T$, and $I_T$ is an interpreter for $T$ that implements the semantics, then
+running $C$, followed by running $I_T$ on the result, results in a correct interpreter for $S$. That is:
+\begin{verbatim}
+    Interpreter I_S for S:
+    On input (INPUT, prog):
+    - Run C: set out = C(prog).
+    - Run I_T((INPUT, out)).
+\end{verbatim}
+
+You may assume that the meta-language $M$ runs the pseudocode above in the way that you would expect (i.e., it runs $C$ followed by $I_T$).
+
+\item
+Define the ``do nothing'' compiler from $S$ to $S$
+to be a compiler which simply takes the input program, and returns it without any changes. This is a program in the metalanguage $M$ such that
+$$
+(\texttt{INPUT}, \texttt{do\_nothing}, \texttt{OUTPUT})
+$$
+is valid if and only if $\texttt{INPUT} = \texttt{OUTPUT}$.
+
+Use your definition to prove or disprove the following:
+Regardless of the semantics of $S$, and even if $S$ is nondeterministic,
+a do-nothing compiler is a valid compiler from $S$ to itself.
+\end{enumerate}
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 2   %%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+This problem will ask you to expand the basic \texttt{RandProg}
+compiler from class to add some syntactic sugar.
+First, copy in any necessary code involving \texttt{RandProg}
+from the Lecture 2, Part 1 source code.
+Then complete the following
+(this was an exercise that we skipped in class):
+
+\begin{enumerate}[(a)]
+\item First, fix our compiler from class to produce runnable code.
+To do this, you will need to have it generate a \texttt{main} function,
+and you may also need to inline (or include with the compiled target code)
+the utility functions we used from \texttt{util.rs}. The compiler should now produce a single \texttt{String} for a \texttt{main.rs} source file, which can be run directly.
+
+Write a unit test to see that it is working.
+
+\item Add syntactic sugar to our language for 4-bit integers,
+which support equality, less-than, and addition.
+Adapt and structure the compiler in such a way that the 4-bit integer logic is compiled out, and the 4-bit integers are reduced to Booleans.
+
+\item Add at least two unit tests to ensure that your new compiler is working.
+\end{enumerate}
+
+\textbf{Function and type names:} For part (a), use the same \texttt{RandProg} and compiler from class.
+For part (b), please define a Rust enum \texttt{RandProgP2} for the syntax with the syntactic sugar, \texttt{struct RandProgP2Compiler} for the compiler, which supports methods
+\begin{verbatim}
+impl RandProgP2Compiler {
+    pub fn new() -> Self
+    pub fn compile(&mut self, prog: &RandProgP2) -> String
+}
+\end{verbatim}
+
+For the unit tests in (a) and (c),
+please name these \texttt{test\_2a}, \texttt{test\_2c\_1}, and \texttt{test\_2c\_2}. (You may add other unit tests with other names.)
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 3   %%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+This problem will ask you to expand the basic \texttt{RandProg}
+to add something resembling platform-specific code.
+Use the same \texttt{RandProg} enum from Problem 2.
+Then, complete the following
+(this was an exercise that we skipped in class):
+
+\begin{enumerate}[(a)]
+\item
+Add some ``platform-specific code'' for random number generation by
+allowing our language to be configured to different pseudorandom number generators at the back-end:
+(1) Rust thread RNG (default Rust random generator)
+(2) Always return Heads
+(3) Always return Tails
+(4) On Unix systems, use Unix's \texttt{/dev/random} for RNG rather than the built in Rust thread RNG.
+\item
+Add at least three unit tests to ensure that your new compiler is working.
+\end{enumerate}
+
+\textbf{Function and type names:}
+Use \texttt{RandProg} for the syntax, and \texttt{RandProgP3Compiler} for the compiler.
+To get this to work, you will need to add a \texttt{RandProgRngConfig} enum to your compiler that tells which platform to compile for:
+\begin{verbatim}
+#[derive(Debug, Copy, Clone)]
+pub enum RandProgRngConfig {
+    DefaultRng,
+    AlwaysHeads,
+    AlwaysTails,
+    DevRandom,
+}
+\end{verbatim}
+
+Then, your compiler should have two different constructors:
+\begin{verbatim}
+impl RandProgP3Compiler {
+    pub fn new() -> Self // Use default Rng
+    pub fn new_with_rng(RandProgRngConfig) -> Self
+    pub fn compile(&mut self, prog: &RandProg) -> String
+}
+\end{verbatim}
+
+Please name your unit tests \texttt{test\_3b\_1}, \texttt{test\_3b\_2}, and \texttt{test\_3b\_3}. (You may add other unit tests with other names.)
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 4   %%%%%
