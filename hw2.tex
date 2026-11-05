@@ -41,13 +41,10 @@
 
 \noindent
 This problem set contains 5 problems.
-As with HW1, problems 1, 3, and 5 are coding problems,
-and problems 2 and 4 are pure theory problems.
-% Problems 2, 3, and 5 build on Problem 1,
-% while Problem 4 is standalone.
-% Most problems have multiple parts.
-There is a template in \texttt{src/} which you can modify for the programming problems.
-Solutions to the theory problems should be written in LaTeX.
+Problems 1 and 5 are pure theory problems, and 2, 3, and 4 are coding problems.
+Most problems have multiple parts.
+For the coding problems, edit and add your source code in the provided \texttt{src/main.rs}.
+Solutions to the theory and free response questions should be written in LaTeX.
 
 \bigskip
 
@@ -185,8 +182,16 @@ allowing our language to be configured to different pseudorandom number generato
 (2) Always return Heads
 (3) Always return Tails
 (4) On Unix systems, use Unix's \texttt{/dev/random} for RNG rather than the built in Rust thread RNG.
+
 \item
 Add at least three unit tests to ensure that your new compiler is working.
+
+\item
+Then answer the following (in your LaTeX document and PDF):
+Why might it be more helpful to generate this platform-specific code,
+\emph{after} any compiler analysis and optimization passes on various intermediate representations have completed?
+Comment on why you think this separated design is often used
+in compiler development in practice.
 \end{enumerate}
 
 \textbf{Function and type names:}
@@ -213,17 +218,126 @@ impl RandProgP3Compiler {
 
 Please name your unit tests \texttt{test\_3b\_1}, \texttt{test\_3b\_2}, and \texttt{test\_3b\_3}. (You may add other unit tests with other names.)
 
+
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 4   %%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+This problem and the following one will revisit the BF language from HW1.
+
+One extremely important intermediate representation in the context of real compilers is that of a \emph{control flow graph}.
+To define a control-flow graph for a language, we define a set of nodes and edges.
+These are defined as follows:
+\begin{itemize}
+\item \textbf{Nodes:}
+The nodes are the set of \textbf{basic blocks} of the program.
+A basic block is a sequence of instructions, none of which is a branching or loop statement (with the possible exception of the very last statement).
+In the context of BF, that means it will be a sequence of instructions in the program that doesn't have the \texttt{[]} characters, except (possibly) its very last character.
+The idea of a ``basic block'' is that it is a basic sequence of instructions that can be executed in order -- and is always executed in order, ``as a whole'' -- with exactly one entry and exit point. In particular, it is impossible for any other part of the program to ever jump or branch to the middle of a basic block.
+
+Also, one special basic block is designated as the entrypoint of the program, and one as the exit point.
+The exit point block (unlike the others) may be empty, in the case that the program ends in a jump or branch statement (to distinguish from the block of instructions prior to the jump, and after the jump when the program will terminate).
+The entry point block should always be nonempty, unless the program itself is empty, in which case it should have only one basic block, which is both the entry and exit point.
+
+\item \textbf{Edges:}
+The edges are then from one basic block to another, if it is possible for that basic block to transition to the other one after it finishes executing.
+For example, in languages with \texttt{if} statements, for the basic block immediately prior to an \texttt{if} statement, it would have an edge to both branches of the \texttt{if}. In languages with \texttt{loop}s (of all kinds), the basic block immediately prior to the loop will have an edge to both the block inside the loop, and after the loop.
+\end{itemize}
+
+For this problem, write two functions:
+\begin{verbatim}
+pub fn num_basic_blocks(bf_prog: &str) -> usize
+\end{verbatim}
+
+which takes a BF program as a plain ASCII string and calculates the number of basic blocks; and
+
+\begin{verbatim}
+pub fn num_edges(bf_prog: &str) -> usize
+\end{verbatim}
+
+which takes a BF program as a plain ASCII string and calculates the number of edges.
+Both functions may assume the BF program is valid (has matching loop instructions)
+It may be the empty string.
+
+You do not need to actually write a compiler which takes the BF program and calculates its control flow graph as an intermediate representation as part of this problem, though you may choose to do so.
+We will grade only your two functions for correctness.
+
+You may want to write some unit tests for your functions to ensure they are working correctly.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 5   %%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+Most programming languages that are designed and studied in practice are what is called \emph{Turing-complete}.
+This can be defined as ``has the ability to simulate, and can be simulated by, a Turing machine'', or it may be defined more informally as simply ``has the ability to simulate, and can be simulated by, any regular program'' (such as one written in Python or C).
+Alternatively, it may be defined in terms of concepts introduced in HW1, as:
+the semantics of the language can both simulate BF, and can be simulated by BF.
+
+However, not all languages are Turing-complete.
+For example, from class, \texttt{RandProg} is not Turing-complete. It has only Boolean variables, so cannot store and access infinite memory. It would be Turing-complete if we were to add integer variables and loops. Any type of loop would do, \texttt{while} loops or \texttt{for} loops or \texttt{label/goto} statements.
+
+This problem will have two parts.
+The first part will ask you to design a language that is \emph{weaker} than Turing-complete, and the second \emph{stronger} than Turing complete.
+
+Below, \texttt{BF} is used as a stand-in language for a Turing-complete language for these problems. However, if you are more comfortable with some other Turing-complete language, such as Turing machines themselves, you can also use that instead of BF. Or if you are more comfortable working with Python programs or pseudocode, you may use that. You can assume that a semantics has been given for any of these languages that matches your intuition.
+
+To prove that one language can simulate another,
+you should do so by defining a function $f$,
+as in HW Part 1, that translates
+Argue informally that your translation is correct based on the semantics of the source and target languages.
+
+\begin{enumerate}[(a)]
+\item
+Consider the following language, called \texttt{FORLOOP}:
+
+\begin{verbatim}
+Var ::= x | y | z
+IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
+Prog ::=
+    Var := IntExpr
+    | Prog ; Prog
+    | If BoolExpr Then { Prog } Else { Prog }
+    | For { Var } from { IntExpr } to { IntExpr } do { Prog }
+\end{verbatim}
+
+In the semantics of \texttt{FORLOOP}, the expression \texttt{For { Var } from { IntExpr } to { IntExpr } do { Prog }} means that the starting integer $i$ and ending integer $j$ will be calculated up front, and then the for loop will be executed by setting \texttt{Var} to every value $i, i + 1, i + 2, \ldots, j - 1$ (like a Python \texttt{range})
+this remains the case even if the variable \texttt{Var} is modified in the loop body. (So, modifications to \texttt{Var} in the loop body are only retained for the duration of that loop body, and don't affect the following loop iteration.) If $j \le i$, the for loop will terminate immediately.
+
+You do not need to write down the formal semantics of the language,
+but assume that it matches the above description for \texttt{For} and your intuition for the other commands.
+You can work with the following: we use the initial values of \texttt{x}, \texttt{y}, and \texttt{z} as input, the final values of \texttt{x}, \texttt{y}, and \texttt{z} are output. Then, assume that
+$((x_0, y_0, z_0), \texttt{prog}, (x_1, y_1, z_1))$ is valid if, when running the program \texttt{prog} as you would expect (interpreting If statements and For loops as they are usually understood), starting with initial values of the variables $(x_0, y_0, z_0)$, $(x_1, y_1, z_1)$ are the final values of the variables.
+
+Prove that \texttt{FORLOOP} is not Turing complete,
+but it is more specifically \emph{weaker} than Turing complete:
+it can be simulated by BF, but not vice versa.
+
+\item
+Now consider the following language, called \texttt{HALT}:
+
+\begin{verbatim}
+Var ::= x | y | z
+IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr | HALTS(BFProg)
+Prog ::=
+    Var := IntExpr
+    | Prog ; Prog
+    | If BoolExpr Then { Prog } Else { Prog }
+    | While { BoolExpr } do { Prog }
+\end{verbatim}
+
+The boolean expression \texttt{HALTS(BFProg)} returns \texttt{True} if and only if the BF program given to it halts. You may assume that the BF programs in question do not take input.
+
+Prove that \texttt{HALT} is not Turing complete,
+but it is more specifically \emph{stronger} than Turing complete:
+it can simulate BF, but not vice versa.
+
+\item
+Explain why, due to the above constraints, it will be impossible to write a correct compiler in \emph{any} metalanguage -- even one that is more powerful than Turing machines -- from \texttt{HALT} to \texttt{BF} or from \texttt{BF} to \texttt{FORLOOP}.
+\end{enumerate}
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%%%%%%%%%%%%%%%%%%%%%
