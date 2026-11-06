@@ -1,6 +1,6 @@
 # ECS 240 Homework 2
 
-## Due: TBD
+## Due: Friday, November 20, 11:59pm
 
 This homework is a problem set. Please see `hw2.pdf` for further instructions.
 

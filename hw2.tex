@@ -25,13 +25,11 @@
 
 \usepackage{booktabs,tabularx}
 
-% \newcommand{\visiblehref}[2]{\href{#1}{#2}\footnote{\url{#1}}}
-
 \begin{document}
 
 \title{HW2 Problem Set}
 \author{ECS 240}
-\date{Due: TBD}
+\date{Due: Friday, November 20}
 
 \maketitle
 
@@ -71,7 +69,7 @@ This problem (in part (a)) asks you to complete the definition of a \emph{correc
 
 \begin{enumerate}[(a)]
 \item
-Complete the definition below based on the template that we started in class. \textbf{Hint:} you may find it helpful to reference the definition of when an interpreter satisfies a semantics that we saw in class (Lecture 1). Your definition should follow a similar idea.
+Complete the definition below based on the template that we started in class. \textbf{Hint:} you may find it helpful to reference the definition of when an interpreter satisfies a semantics that we saw in class in Lecture 1, Part 4. Your definition should follow a similar idea.
 
 \begin{definition}
 Let $M$ be the semantics (set of $(\texttt{INPUT}, \texttt{prog}, \texttt{OUTPUT})$) for the metalanguage. Let $S$ be the semantics of the source language. Let $T$ be the semantics of the target language.
@@ -79,13 +77,14 @@ Let $M$ be the semantics (set of $(\texttt{INPUT}, \texttt{prog}, \texttt{OUTPUT
 A compiler $C$ is a program in the metalanguage $M$.
 
 A compiler $C$ \textbf{is correct}, or \textbf{satisfies} the semantics from $S$ to $T$, if: \ldots
+
 \textcolor{red}{TODO: Complete the definition here.}
 \end{definition}
 
 \item
 Define the ``do nothing'' compiler from $S$ to $S$
 to be a compiler which simply takes the input program, and returns it without any changes.
-This is a program in the metalanguage $M$ such that
+Formally, this is a program in the metalanguage $M$ such that
 $$
 (\texttt{INPUT}, \texttt{do\_nothing}, \texttt{OUTPUT})
 $$
@@ -94,12 +93,13 @@ is valid if and only if $\texttt{INPUT} = \texttt{OUTPUT}$.
 Use your definition from part (a) to prove or disprove the following:
 Regardless of the semantics of $S$, and even if $S$ is nondeterministic,
 a do-nothing compiler is a valid compiler from $S$ to itself.
+Check that your result agrees with your intuition and make any edits to your definition if needed.
 
 \item
 Use your definition from part (a) to prove the following:
-If $C_1$ is a correct compiler from $S$ to $T$, and $C_2$ is a correct compiler from $T$ to $U$, then the compiler $C$ defined by the following pseudocode is a correct compiler from $S$ to $U$:
+If $C_1$ is a correct compiler from $S_1$ to $S_2$, and $C_2$ is a correct compiler from $S_2$ to $S_3$, then the compiler $C$ defined by the following pseudocode is a correct compiler from $S_1$ to $S_3$:
 \begin{verbatim}
-    Compiler C from S to U:
+    Compiler C from S1 to S3:
     On input prog0:
     - Run C1: set prog1 = C1(prog0).
     - Run C2 on the result: set prog2 = C2(prog1).
@@ -110,7 +110,7 @@ You may assume that the meta-language $M$ has some program for the pseudocode ab
 I.e., it runs $C_1$, followed by $C_2$, and returns the result, similar to how \texttt{Seq} works for \texttt{RandProg}.
 
 \textbf{Note:} This part is essentially showing that compiling a program through an intermediate representation works out. In this case,
-the intermediate representation is $T$ and the overall compiler is from $S$ to $U$.
+the intermediate representation is $S_2$ and the overall compiler is from $S_1$ to $S_3$.
 
 \item
 Use your definition from part (a),
@@ -151,13 +151,15 @@ To do this, you will need to wrap the code in a \texttt{main} function,
 and you may also need to inline (or include with the compiled target code)
 one or more utility functions we used from \texttt{util.rs}. The compiler should now produce a single \texttt{String} for a \texttt{main.rs} source file, which can be run directly.
 
-Write a unit test to see that it is working.
+Write a unit test to see that it is working. Your unit test can simply check that the output is a String equal to correctly executable Rust code. However, you may also want to plug this into a \texttt{main.rs} file or put it on the Rust playground to see that it actually runs.
 
 \item Add syntactic sugar to our language for 4-bit integers,
-which support equality, less-than, and addition.
+which support equality, less-than, and addition operations.
 Adapt and structure the compiler in such a way that the 4-bit integer logic is compiled out, and the 4-bit integers are reduced to Booleans.
 (Each 4-bit integer variable should be compiled as four separate Boolean variables.)
-See below for the function and type names required, and for a helpful hint about reducing the amount of \texttt{Box::new} boilerplate that you need to write by hand.
+See below for the function and type names required.
+
+To do this correctly and without a lot of boilerplate code everywhere, you should see what additional methods or helper functions you can define to help out! See the ``helpful note'' below about reducing the amount of \texttt{Box::new} boilerplate that you need to write by hand. Building on this note, you could write other methods or helper functions for some of the other common operations.
 
 \item Add at least two unit tests to ensure that your new compiler is working.
 \end{enumerate}
@@ -174,8 +176,9 @@ impl RandProgP2Compiler {
 For the unit tests in (a) and (c),
 please name these \texttt{test\_2a}, \texttt{test\_2c\_1}, and \texttt{test\_2c\_2}. (You may add other unit tests with other names.)
 
-\textbf{Helpful note:}
-In class, we saw that creating \texttt{RandProg} programs via our Rust enum directly produces a lot of \texttt{Box::new(...)} and \texttt{.clone()} syntax!
+\textbf{Helpful note on reducing boilerplate:}
+In class, we saw that creating \texttt{RandProg} programs via our Rust enum directly produces a lot of \texttt{Box::new(...)} and \texttt{.clone()} syntax.
+This is neither necessary nor desirable!
 Here is a helpful hint about how to avoid that. You can create an impl block like this, and give it various shortcut methods for creating various \texttt{RandProg} programs. For example:
 \begin{verbatim}
 impl RandProgP2 {
@@ -186,7 +189,7 @@ impl RandProgP2 {
         )
     }
     pub fn if_then(/* fill in */) -> { /* fill in */ }
-    // etc.
+    // etc., add other common logic or composition operations as needed.
 }
 \end{verbatim}
 
@@ -207,7 +210,7 @@ impl RandProgP2 {
 \end{verbatim}
 
 This uses \texttt{Rc::clone}, which is a shallow clone that only copies the reference-counted pointer.
-Feel free to use this alternate design if you would like to.
+Although not required, you are welcome to use this alternate design if you would like to.
 (It should only affect your internal methods.)
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -237,7 +240,7 @@ Add at least three unit tests to ensure that your new compiler is working.
 Then answer the following (in your LaTeX document and PDF):
 Why might it be more helpful to generate this platform-specific code,
 \emph{after} any compiler analysis and optimization passes on various intermediate representations have completed?
-Comment on why you think this separated design is often used
+Comment on why you think this separated design might be commonly used
 in compiler development in practice.
 \end{enumerate}
 
@@ -258,7 +261,7 @@ Then, your compiler should have two different constructors:
 \begin{verbatim}
 impl RandProgP3Compiler {
     pub fn new() -> Self // Use default Rng
-    pub fn new_with_rng(RandProgRngConfig) -> Self
+    pub fn new_with_rng(config: RandProgRngConfig) -> Self
     pub fn compile(&mut self, prog: &RandProg) -> String
 }
 \end{verbatim}
@@ -289,6 +292,7 @@ The entry point block should always be nonempty, unless the program itself is em
 \item \textbf{Edges:}
 The edges are then from one basic block to another, if it is possible for that basic block to transition to the other one after it finishes executing.
 For example, in languages with \texttt{if} statements, for the basic block immediately prior to an \texttt{if} statement, it would have an edge to both branches of the \texttt{if}. In languages with \texttt{loop}s (of all kinds), the basic block immediately prior to the loop will have an edge to both the block inside the loop, and after the loop.
+Often, these edges are labeled with \texttt{true} or \texttt{false} corresponding to the result of the prior test resulting in the branch.
 \end{itemize}
 
 For this problem, write two functions:
@@ -322,12 +326,25 @@ Alternatively, it may be defined in terms of concepts introduced in HW1, as:
 the semantics of the language can both simulate BF, and can be simulated by BF.
 
 However, not all languages are Turing-complete.
-For example, from class, \texttt{RandProg} is not Turing-complete. It has only Boolean variables, so cannot store and access infinite memory. It would be Turing-complete if we were to add integer variables and loops. Any type of loop would do, \texttt{while} loops or \texttt{for} loops or \texttt{label/goto} statements.
+For example, from class, \texttt{RandProg} is not Turing-complete. It has only Boolean variables, so cannot store and access infinite memory. It would be Turing-complete if we were to add integer variables and loops (for example, \texttt{while} loops or \texttt{label/goto} statements).
 
 This problem will have two parts.
-The first part will ask you to design a language that is \emph{weaker} than Turing-complete, and the second \emph{stronger} than Turing complete.
+The first part will show that we can design a language that is \emph{weaker} than Turing-complete, and the second, \emph{stronger} than Turing complete.
 
-Below, \texttt{BF} is used as a stand-in language for a Turing-complete language for these problems. However, if you are more comfortable with some other Turing-complete language, such as Turing machines themselves, you can also use that instead of BF. Or if you are more comfortable working with Python programs or pseudocode, you may use that. You can assume that a semantics has been given for any of these languages that matches your intuition.
+We could use \texttt{BF} is used as a stand-in language for a Turing-complete language for these problems. However, we will instead work with the following less contrived language, called \texttt{WHILE}.
+Please assume that we are given a deterministic reference interpreter for \texttt{WHILE} whose behavior is as you expect (for example, matching how while loops would be executed in Python or C), and that its output is taken as the definition of semantics for \texttt{WHILE}. (Similarly to how \texttt{BF} semantics could be defined this way, for the non-extra-credit version, in HW1.)
+
+\begin{verbatim}
+WHILE Grammar
+    Var ::= x | y | z
+    IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+    BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
+    Prog ::=
+        Var := IntExpr
+        | Prog ; Prog
+        | While { BoolExpr } Do { Prog }
+        | For { Var } from { IntExpr } to { IntExpr } do { Prog }
+\end{verbatim}
 
 To prove that one language can simulate another,
 you should do so by defining a function $f$,
