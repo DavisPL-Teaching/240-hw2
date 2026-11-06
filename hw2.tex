@@ -273,7 +273,7 @@ Please name your unit tests \texttt{test\_3b\_1}, \texttt{test\_3b\_2}, and \tex
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
-This problem and the following one will revisit the BF language from HW1.
+This problem will revisit the BF language from HW1.
 
 One extremely important intermediate representation in the context of real compilers is that of a \emph{control flow graph}.
 To define a control-flow graph for a language, we define a set of nodes and edges.
@@ -320,6 +320,13 @@ You may want to write some unit tests for your functions to ensure they are work
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \item
+\textbf{Warning: This problem is difficult! :-)}
+To make it more accessible,
+I split it up into multiple parts, and
+some parts ask only for your informal reasoning rather than proofs.
+Please do your best to work through it and especially to understand the concepts involved.
+Come to office hours if you get stuck.
+
 Most programming languages that are designed and studied in practice are what is called \emph{Turing-complete}.
 This can be defined as ``has the ability to simulate, and can be simulated by, a Turing machine'', or it may be defined more informally as simply ``has the ability to simulate, and can be simulated by, any regular program'' (such as one written in Python or C).
 Alternatively, it may be defined in terms of concepts introduced in HW1, as:
@@ -328,78 +335,146 @@ the semantics of the language can both simulate BF, and can be simulated by BF.
 However, not all languages are Turing-complete.
 For example, from class, \texttt{RandProg} is not Turing-complete. It has only Boolean variables, so cannot store and access infinite memory. It would be Turing-complete if we were to add integer variables and loops (for example, \texttt{while} loops or \texttt{label/goto} statements).
 
-This problem will have two parts.
-The first part will show that we can design a language that is \emph{weaker} than Turing-complete, and the second, \emph{stronger} than Turing complete.
+In the following there are six parts:
+Parts (a)-(b) will show that we can design a language that is \emph{weaker} than Turing-complete,
+and parts (c)-(d), \emph{stronger} than Turing complete.
+Parts (a) and (c) will ask for proofs, but parts (b) and (d) will only ask for your informal reasoning.
+Part (e) is a free response question,
+and part (f) is optional extra credit.
 
-We could use \texttt{BF} is used as a stand-in language for a Turing-complete language for these problems. However, we will instead work with the following less contrived language, called \texttt{WHILE}.
-Please assume that we are given a deterministic reference interpreter for \texttt{WHILE} whose behavior is as you expect (for example, matching how while loops would be executed in Python or C), and that its output is taken as the definition of semantics for \texttt{WHILE}. (Similarly to how \texttt{BF} semantics could be defined this way, for the non-extra-credit version, in HW1.)
+For all parts, we could use BF is used as a stand-in language for a Turing-complete language. However, we will instead work with the following less-contrived language, called WHILE, which is closer to real programs.
+It has the following \textbf{Syntax} and \textbf{Semantics}:
 
+\begin{itemize}
+\item \textbf{Syntax:}
 \begin{verbatim}
-WHILE Grammar
     Var ::= x | y | z
-    IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+    IntExpr ::= 0 | 1 | Var
+                | (IntExpr + IntExpr) | (IntExpr * IntExpr)
     BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
-    Prog ::=
-        Var := IntExpr
-        | Prog ; Prog
-        | While { BoolExpr } Do { Prog }
-        | For { Var } from { IntExpr } to { IntExpr } do { Prog }
+    Prog ::= Var := IntExpr
+             | Prog ; Prog
+             | If { BoolExpr } Then { Prog } Else { Prog }
+             | While { BoolExpr } Do { Prog }
 \end{verbatim}
+
+\item \textbf{Semantics:}
+For the semantics, assume that we are given a deterministic reference interpreter for \texttt{WHILE} whose behavior is as you expect (for example, matching how while loops would be executed in Python or C), and that its output is taken as the definition. This is similar to how we saw in HW1 that \texttt{BF} semantics could be defined using a reference interpreter, for the non-extra-credit version.
+
+For the reference interpreter, assume that it takes the initial values of \texttt{x}, \texttt{y}, and \texttt{z} as input, and the final values of \texttt{x}, \texttt{y}, and \texttt{z} are output.  Then, assume that
+$((x_0, y_0, z_0), \texttt{prog}, (x_1, y_1, z_1))$ is valid if, when running the program \texttt{prog} as you would expect (for example, interpreting If statements and While loops as they are usually understood), starting with initial values of the variables $(x_0, y_0, z_0)$, $(x_1, y_1, z_1)$ are the final values of the variables.
+The expression \texttt{While \{ BoolExpr \} Do \{ Prog \}}
+means that we check whether \texttt{BoolExpr} is true, and each time that it is true, we execute the loop body.
+
+Finally, there is one important edge case -- what is the semantics when the WHILE program does not terminate?
+Assume in this case that the output is $(-1, -1, -1)$.\footnote{
+    You might think that the output should be empty -- i.e., the empty set of possible outputs -- in this case. But this is undesirable! Recall that making the semantics the empty set
+    (even on some particular input) leads to there being no possible valid interpreter for the language. See poll on Oct 28.
+}
+\end{itemize}
 
 To prove that one language can simulate another,
 you should do so by defining a function $f$,
 as in HW Part 1, that translates one language to another.
+It can be any mathematical function.
 Argue informally that your translation is correct based on the semantics of the source and target languages.
+The parts that show a simulation is \emph{not} possible
+will ask only for an informal argument;
+for these parts, you should argue informally why no such function $f$ can exist.\footnote{
+    There is a bit of a deficiency in our definition of
+    a simulation function $f$, which is that the function $f$
+    should really be required to be \emph{computable} in some meta-language.
+    This deficiency is explored in part (f), which is optional extra credit.
+}
 
 \begin{enumerate}[(a)]
 \item
-Consider the following language, called \texttt{FORLOOP}:
+Consider the following language, similar to \texttt{WHILE}, called \texttt{FORLOOP}:
 
+\begin{itemize}
+\item
+\textbf{Syntax:}
 \begin{verbatim}
-Var ::= x | y | z
-IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
-BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
-Prog ::=
-    Var := IntExpr
-    | Prog ; Prog
-    | If BoolExpr Then { Prog } Else { Prog }
-    | For { Var } from { IntExpr } to { IntExpr } do { Prog }
+    Var ::= x | y | z
+    IntExpr ::= 0 | 1 | Var
+                | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+    BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
+    Prog ::= Var := IntExpr
+             | Prog ; Prog
+             | If BoolExpr Then { Prog } Else { Prog }
+             | For { Var } From { IntExpr } To { IntExpr } Do { Prog }
 \end{verbatim}
 
-In the semantics of \texttt{FORLOOP}, the expression \texttt{For { Var } from { IntExpr } to { IntExpr } do { Prog }} means that the starting integer $i$ and ending integer $j$ will be calculated up front, and then the for loop will be executed by setting \texttt{Var} to every value $i, i + 1, i + 2, \ldots, j - 1$ (like a Python \texttt{range})
-this remains the case even if the variable \texttt{Var} is modified in the loop body. (So, modifications to \texttt{Var} in the loop body are only retained for the duration of that loop body, and don't affect the following loop iteration.) If $j \le i$, the for loop will terminate immediately.
+\item
+\textbf{Semantics:}
+The semantics is the same as for \texttt{WHILE},
+except for \texttt{For} loops:
+in that case, the expression \texttt{For \{ Var \} From \{ IntExpr \} To \{ IntExpr \} Do \{ Prog \}} means that the starting integer $i$ and ending integer $j$ will be calculated up front, and then the for loop will be executed by setting \texttt{Var} to every value $i, i + 1, i + 2, \ldots, j - 1$ (like a Python \texttt{range}).
+This remains the case even if the variable \texttt{Var} is modified in the loop body. So, modifications to \texttt{Var} in the loop body are only retained for the duration of that loop body, and don't affect the following loop iteration.
+If $j \le i$, the for loop will terminate immediately.
+\end{itemize}
 
-You do not need to write down the formal semantics of the language,
-but assume that it matches the above description for \texttt{For} and your intuition for the other commands.
-You can work with the following: we use the initial values of \texttt{x}, \texttt{y}, and \texttt{z} as input, the final values of \texttt{x}, \texttt{y}, and \texttt{z} are output. Then, assume that
-$((x_0, y_0, z_0), \texttt{prog}, (x_1, y_1, z_1))$ is valid if, when running the program \texttt{prog} as you would expect (interpreting If statements and For loops as they are usually understood), starting with initial values of the variables $(x_0, y_0, z_0)$, $(x_1, y_1, z_1)$ are the final values of the variables.
-
-Prove that \texttt{FORLOOP} is not Turing complete,
+\texttt{FORLOOP} is not Turing complete,
 but it is more specifically \emph{weaker} than Turing complete:
-it can be simulated by BF, but not vice versa.
+it can be simulated by \texttt{WHILE} programs, but not vice versa.
+
+Prove the first direction, that \texttt{FORLOOP} can be simulated by \texttt{WHILE}.
+
+\item
+Argue informally in the other direction: why \texttt{WHILE} cannot be simulated by \texttt{FORLOOP}.\footnote{
+    There is one ``surface-level'' reason why this is the case,
+    and one ``deeper'' reason.
+    If you are not sure, don't worry about this comment.
+    To really explore the deeper reason, we would have to change the semantics for nonterminating programs, for example to output $(0, 0, 0)$ in stead of $(-1, -1, -1)$.
+}
 
 \item
 Now consider the following language, called \texttt{HALT}:
 
+\begin{itemize}
+\item \textbf{Syntax:}
 \begin{verbatim}
-Var ::= x | y | z
-IntExpr ::= 0 | 1 | Var | (IntExpr + IntExpr) | (IntExpr * IntExpr)
-BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr | HALTS(BFProg)
-Prog ::=
-    Var := IntExpr
-    | Prog ; Prog
-    | If BoolExpr Then { Prog } Else { Prog }
-    | While { BoolExpr } do { Prog }
+    Var ::= x | y | z
+    IntExpr ::= 0 | 1 | Var
+                | (IntExpr + IntExpr) | (IntExpr * IntExpr)
+    BoolExpr ::= IntExpr < IntExpr | IntExpr == IntExpr
+                 | Halts { IntExpr }
+    Prog ::= Var := IntExpr
+             | Prog ; Prog
+             | If BoolExpr Then { Prog } Else { Prog }
+             | While { BoolExpr } do { Prog }
 \end{verbatim}
 
-The boolean expression \texttt{HALTS(BFProg)} returns \texttt{True} if and only if the BF program given to it halts. You may assume that the BF programs in question do not take input.
+\textbf{Semantics:}
+The semantics is again the same as for \texttt{WHILE},
+except for \texttt{Halts} expressions.
+The boolean expression \texttt{Halts \{ IntExpr \}} returns \texttt{True} if and only if the integer expression given to it - when converted to binary and then interpreted as an ASCII string -- encodes a \texttt{WHILE} program that halts on input $(0, 0, 0)$.
 
-Prove that \texttt{HALT} is not Turing complete,
+\end{itemize}
+
+\texttt{HALT} is not Turing complete,
 but it is more specifically \emph{stronger} than Turing complete:
-it can simulate BF, but not vice versa.
+it can simulate \texttt{WHILE}, but not vice versa.
+
+Prove the first direction, namely that \texttt{HALT} can simulate \texttt{WHILE}.
 
 \item
-Explain why, due to the above constraints, it will be impossible to write a correct compiler in \emph{any} metalanguage -- even one that is more powerful than Turing machines -- from \texttt{HALT} to \texttt{BF} or from \texttt{BF} to \texttt{FORLOOP}.
+Argue informally in the other direction: why \texttt{WHILE} cannot simulate \texttt{HALT}.\footnote{
+    Make sure you don't assume that the function $f$ is a real program! It could be any mathematical function.
+}
+
+\item
+Explain why, due to the above constraints, it will be impossible to write a correct compiler in \emph{any} metalanguage -- even one that is more powerful than Turing machines -- from \texttt{HALT} to \texttt{WHILE} or from \texttt{WHILE} to \texttt{FORLOOP}.
+
+\item \textbf{(Optional -- extra credit)}
+If, in the definition of HALT,
+we were to define \texttt{Halts \{ WhileProg \}}, where \texttt{WhileProg} is simply
+a WHILE program -- instead of \texttt{Halts \{ IntExpr \} } with an integer whose binary expansion encodes a WHILE program -- then HALT would not actually
+be strictly stronger than WHILE in the above sense.
+Why not?
+
+\textbf{Hint:} this is due to a deficiency in our working definition of a simulation function, since we did not require $f$ to be actually computable in the translation.
+
 \end{enumerate}
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
