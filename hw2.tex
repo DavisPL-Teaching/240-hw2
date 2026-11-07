@@ -159,7 +159,9 @@ Adapt and structure the compiler in such a way that the 4-bit integer logic is c
 (Each 4-bit integer variable should be compiled as four separate Boolean variables.)
 See below for the function and type names required.
 
-To do this correctly and without a lot of boilerplate code everywhere, you should see what additional methods or helper functions you can define to help out! See the ``helpful note'' below about reducing the amount of \texttt{Box::new} boilerplate that you need to write by hand. Building on this note, you could write other methods or helper functions for some of the other common operations.
+To do this correctly and without a lot of boilerplate code everywhere, you should see what additional methods or helper functions you can define to help out!
+See the \textbf{Helpful note:} in the Appendix included at the end of this PDF.
+Building on this note, you could write other methods or helper functions for some of the other common operations.
 
 \item Add at least two unit tests to ensure that your new compiler is working.
 \end{enumerate}
@@ -175,43 +177,6 @@ impl RandProgP2Compiler {
 
 For the unit tests in (a) and (c),
 please name these \texttt{test\_2a}, \texttt{test\_2c\_1}, and \texttt{test\_2c\_2}. (You may add other unit tests with other names.)
-
-\textbf{Helpful note on reducing boilerplate:}
-In class, we saw that creating \texttt{RandProg} programs via our Rust enum directly produces a lot of \texttt{Box::new(...)} and \texttt{.clone()} syntax.
-This is neither necessary nor desirable!
-Here is a helpful hint about how to avoid that. You can create an impl block like this, and give it various shortcut methods for creating various \texttt{RandProg} programs. For example:
-\begin{verbatim}
-impl RandProgP2 {
-    pub fn seq(prog1: &RandProgP2, prog2: &RandProgP2) -> RandProgP2 {
-        RandProgP2::Seq(
-            Box::new(prog1.clone()),
-            Box::new(prog2.clone())
-        )
-    }
-    pub fn if_then(/* fill in */) -> { /* fill in */ }
-    // etc., add other common logic or composition operations as needed.
-}
-\end{verbatim}
-
-BTW, if you are wondering about the \texttt{.clone()}s - these are really not necessary, and they result in extra memory allocation. The ``correct'' way to write the code is to use the standard library's reference-counted pointer type, \texttt{Rc}\footnote{
-    See \url{https://doc.rust-lang.org/std/rc/struct.Rc.html}.
-}
-in your language \texttt{enum} instead of plain \texttt{Box}.
-Then, instead of using \texttt{Box::new()} your shortcut methods would look something like this:
-\begin{verbatim}
-impl RandProgP2 {
-    pub fn seq(prog1: &Rc<RandProgP2>, prog2: &Rc<RandProgP2>) -> Rc<RandProgP2> {
-        Rc::new(RandProgP2::Seq(
-            Rc::clone(prog1),
-            Rc::clone(prog2)
-        ))
-    }
-}
-\end{verbatim}
-
-This uses \texttt{Rc::clone}, which is a shallow clone that only copies the reference-counted pointer.
-Although not required, you are welcome to use this alternate design if you would like to.
-(It should only affect your internal methods.)
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%
 % %%%%%   PROBLEM 3   %%%%%
@@ -411,7 +376,7 @@ The semantics is the same as for \texttt{WHILE},
 except for \texttt{For} loops:
 in that case, the expression \texttt{For \{ Var \} From \{ IntExpr \} To \{ IntExpr \} Do \{ Prog \}} means that the starting integer $i$ and ending integer $j$ will be calculated up front, and then the for loop will be executed by setting \texttt{Var} to every value $i, i + 1, i + 2, \ldots, j - 1$ (like a Python \texttt{range}).
 This remains the case even if the variable \texttt{Var} is modified in the loop body. So, modifications to \texttt{Var} in the loop body are only retained for the duration of that loop body, and don't affect the following loop iteration.
-If $j \le i$, the for loop will terminate immediately.
+If $j \le i$ immediately before the start of an iteration, the for loop will terminate immediately.
 \end{itemize}
 
 \texttt{FORLOOP} is not Turing complete,
@@ -497,5 +462,44 @@ Why not?
 
 \item Make sure that \texttt{cargo build}, \texttt{cargo clippy}, \texttt{cargo test}, and \texttt{cargo fmt} (or \texttt{cargo fmt --check}) pass without any errors.
 \end{itemize}
+
+\newpage
+
+\section*{\normalsize Appendix: Helpful note on reducing boilerplate for \texttt{RandProg}:}
+In class, we saw that creating \texttt{RandProg} programs via our Rust enum directly produces a lot of \texttt{Box::new(...)} and \texttt{.clone()} syntax.
+This is neither necessary nor desirable!
+Here is a helpful hint about how to avoid that. You can create an impl block like this, and give it various shortcut methods for creating various \texttt{RandProg} programs. For example:
+\begin{verbatim}
+impl RandProgP2 {
+    pub fn seq(prog1: &RandProgP2, prog2: &RandProgP2) -> RandProgP2 {
+        RandProgP2::Seq(
+            Box::new(prog1.clone()),
+            Box::new(prog2.clone())
+        )
+    }
+    pub fn if_then(/* fill in */) -> { /* fill in */ }
+    // etc., add other common logic or composition operations as needed.
+}
+\end{verbatim}
+
+BTW, if you are wondering about the \texttt{.clone()}s - these are really not necessary, and they result in extra memory allocation. The ``correct'' way to write the code is to use the standard library's reference-counted pointer type, \texttt{Rc}\footnote{
+    See \url{https://doc.rust-lang.org/std/rc/struct.Rc.html}.
+}
+in your language \texttt{enum} instead of plain \texttt{Box}.
+Then, instead of using \texttt{Box::new()} your shortcut methods would look something like this:
+\begin{verbatim}
+impl RandProgP2 {
+    pub fn seq(prog1: &Rc<RandProgP2>, prog2: &Rc<RandProgP2>) -> Rc<RandProgP2> {
+        Rc::new(RandProgP2::Seq(
+            Rc::clone(prog1),
+            Rc::clone(prog2)
+        ))
+    }
+}
+\end{verbatim}
+
+This uses \texttt{Rc::clone}, which is a shallow clone that only copies the reference-counted pointer.
+Although not required, you are welcome to use this alternate design if you would like to.
+(It should only affect your internal methods.)
 
 \end{document}
